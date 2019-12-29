@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理</title>
+    <link rel="stylesheet" type="text/css" href="/static/easyui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="/static/easyui/themes/icon.css">
+    <script type="text/javascript" src="/static/easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="/static/easyui/locale/easyui-lang-zh_CN.js"></script>
+    
+    <script>
+        function test(id,status){
+            console.log("id = "+id);
+            console.log("status = "+status);
+            $.ajax({
+                type:"POST",
+                url:"http://localhost:8080/user/updatestatus",
+                dataType:"json",
+                data:{
+                    "id":id,
+                    "status":status
+                },
+                success:function(data){
+                    console.log(data);
+                    if(data.code == 200){
+                        alert(data.msg);
+                    }
+                    if (data.code == 500) {
+                        alert(data.msg);
+                    }
+                }
+            
+            });
+            location.reload();
+        }
+
+        $(function(){
+            // function success(data){
+            //     console.log(data);
+            // }
+            // function error(){
+            //     alert("加载失败，请重试！")
+            // }
+
+            var myloder = function(param,success,error){
+                $.ajax({
+                    type:"POST",
+                    url:"http://localhost:8080/user/select",  
+                    dataType:"json",
+                    async : true,
+                    contentType:'application/json',
+                    success:function(obj){
+                        console.log(obj.data);
+                        success(obj.data);
+                    }
+
+                });
+            }
+            var search = function(param,success,error){
+                var name = $("#search_name").textbox("getValue");
+                var phone = $("#search_phone").textbox("getValue");
+                var status = $("#search_status").textbox("getValue");
+                var address = $("#search_address").textbox("getValue");
+                console.log(name);
+                console.log(phone);
+                console.log(status);
+                console.log(address);
+                $.ajax({
+                    type:"POST",
+                    url:"http://localhost:8080/user/search",
+                    dataType:"json",
+                    data:{
+                        "name":name,
+                        "phone":phone,
+                        "status":status,
+                        "address":address
+                    },
+                    success:function(obj){
+                        console.log(obj.data);
+                        success(obj.data);
+                    }
+                });
+            }
+            
+            
+            function init(tempfunc){
+                $('#dg').datagrid({
+                
+
+                    loader: tempfunc,
+                    // url:'datagrid_data.json',
+                    // method:'get',       
+                    // data: [
+                        // { id: '1', name: "张三", phone: '13813901055', address: '南京大行宫', status: '0' },
+                        // { id: '2', name: '李四', phone: '13813901055', address: '南京新街口', status: '0' },
+                        // { id: '3', name: '王五', phone: '13813901055', address: '南京夫子庙', status: '1' },
+                        // { id: '4', name: '赵六', phone: '13813901055', address: '南京玄武湖', status: '1' },
+                        // { id: '5', name: '乔七', phone: '13813901055', address: '南京紫荆山', status: '0' },
+                    // ],
+
+                    columns: [
+                        [
+                        { title: '姓名', field: 'name', width: '20%', align: 'center'},
+                        { title: '电话', field: 'phone', width: '20%', align: 'center' },
+                        { title: '地址', field: 'address', width: '20%', align: 'center' },
+                        {
+                            title: '状态', field: 'status', width: '20%', align: 'center', formatter: function (value, row, index) {
+                                // console.log(value,row,index);
+                                return value == 0 ? '启用' : '禁用';
+                            }
+                        },
+                        {
+                            title: '操作', field: 'id', width: '20%', align: 'center', formatter: function (value, row) {
+                                var str = row.status == 0 ? '禁用' : '启用';
+                                return "<button onclick='test("+row.id+","+row.status+");'>"+str+"</button>";
+                            }
+                        },
+                    ]
+                    ],
+                    title: '用户列表',
+                    iconCls: 'icon-save',
+                    width: '100%',
+                    singleSelect: true,
+                    rownumbers: true,
+                    toolbar: '#tb'
+                });
+               
+            }
+
+            
+            init(myloder);
+
+            
+      
+
+            /**
+             * 初始化添加窗口
+             */
+            $('#dd_add').dialog({
+                title: '添加用户',
+                width: 500,
+                height: 300,
+                closed: true,
+                modal: true,
+                iconCls: 'icon-save',
+                buttons: [{
+                    text: '提交',
+                    iconCls: 'icon-ok',
+                    handler: function () {
+                        //console.log($("#name_add").textbox("getValue"));
+                        var name = $("#name_add").val();
+                        var phone = $("#phone_add").val();
+                        var address = $("#address_add").val();
+                        $.ajax({
+                            type:"POST",
+                            url:"http://localhost:8080/user/add",
+                            dataType:"json",
+                            data:{
+                                "name":name,
+                                "phone":phone,
+                                "address":address
+                            },
+                            success:function(data){
+                                console.log(data);
+                                if(data.code == 200){
+                                    alert(data.msg);
+                                }
+                                if (data.code == 500) {
+                                    alert(data.msg);
+                                }
+                            }
+                        
+                        });
+
+
+                        $('#dd_add').dialog('close'); // 关闭对话框
+                        $('#dg').datagrid('reload'); // 刷新页面         
+                        $('#ff_add').form('clear'); // 清除表单数据
+                        location.reload();
+                    }
+                }, {
+                    text: '关闭',
+                    iconCls: 'icon-no',
+                    handler: function () {
+                        $('#dd_add').dialog('close');
+                    }
+                }]
+            });
+
+            /**
+             * 初始化修改窗口
+             */
+            $('#dd_modify').dialog({
+                title: '修改用户',
+                width: 500,
+                height: 300,
+                closed: true,
+                modal: true,
+                iconCls: 'icon-save',
+                buttons: [{
+                    text: '提交',
+                    iconCls: 'icon-ok',
+                    handler: function () {
+
+                        console.log("修改用户");
+                        var name = $("#name_modify").val();
+                        var phone = $("#phone_modify").val();
+                        var address = $("#address_modify").val();
+                        console.log(oldname);
+                        console.log(name);
+                        var issame = false;
+                        if (oldname == name) {
+                            issame = true;
+                        }
+                        console.log(issame);
+                        //向后台传递要修改的信息
+                        $.ajax({
+                            type:"POST",
+                            url:"http://localhost:8080/user/update",
+                            dataType:"json",
+                            data:{
+                                "issame":issame,
+                                "id":id,
+                                "name":name,
+                                "phone":phone,
+                                "address":address
+                            },
+                            success:function(data){
+                                console.log(data);
+                                if(data.code == 200){
+                                    alert(data.msg);
+                                }
+                                if (data.code == 500) {
+                                    alert(data.msg);
+                                }
+                            }
+                        
+                        });
+
+                        $('#dd_modify').dialog('close'); // 关闭对话框
+                        $('#dg').datagrid('reload'); // 刷新页面
+                        $('#ff_modify').form('clear'); // 清除表单数据
+                        location.reload();
+                    }
+                }, {
+                    text: '关闭',
+                    iconCls: 'icon-no',
+                    handler: function () {
+                        $('#dd_modify').dialog('close');
+                    }
+                }]
+            });
+
+            var oldname;
+            var id;
+            // 显示修改窗口
+            $('#btn_modify').click(function () {
+                var row = $('#dg').datagrid("getSelected"); // 返回第一个选中的行
+                //console.log(row.name);
+                if (row == null) {
+                    $.messager.alert('提示','请先选择要修改的用户！','info');
+                    return;
+                }
+                id = row.id;
+                oldname = row.name;
+                $("#name_modify").textbox("setValue",row.name);
+                $("#phone_modify").textbox("setValue",row.phone);
+                $("#address_modify").textbox("setValue",row.address);
+                $('#dd_modify').dialog('open');
+                
+            });
+
+            // 删除
+            $('#btn_delete').click(function(){
+                $.messager.confirm('警告','确定要删除吗？',function(r){
+                   if(r){
+                        console.log("1123342342");
+                        var row = $('#dg').datagrid("getSelected");
+                        var id = row.id;
+                        console.log(id);
+                        $.ajax({
+                            type:"POST",
+                            url:"http://localhost:8080/user/deluser",
+                            dataType:"json",
+                            data:{
+                                "id":id
+                            },
+                            success:function(data){
+                                console.log(data);
+                                if(data.code == 200){
+                                    alert(data.msg);
+                                }
+                                if (data.code == 500) {
+                                    alert(data.msg);
+                                }
+                            }
+                        
+                        });
+
+                        location.reload();
+                   }
+                });
+            });
+
+
+            
+            $("#search").click(function(){
+                
+                init(search);
+            });
+
+
+
+        });
+    </script>
+</head>
+<body>
+    <!-- 工具栏 start -->
+    <div id='tb'>
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-add',plain:true" onclick="$('#dd_add').dialog('open')">新增</a>
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-edit',plain:true" id="btn_modify">修改</a>
+        <a href="#" class="easyui-linkbutton" data-options="iconCls:'icon-remove',plain:true" id="btn_delete">删除</a>
+        &nbsp;&nbsp;&nbsp;
+        <input id="search_name" class="easyui-textbox" data-options="label:'姓名：',labelWidth:50" style="width:190px;height:25px;">&nbsp;
+        <input id="search_phone" class="easyui-textbox" data-options="label:'电话：',labelWidth:50" style="width:190px;height:25px;">&nbsp;
+        <input id="search_address" class="easyui-textbox" data-options="label:'地址：',labelWidth:50" style="width:190px;height:25px;">&nbsp;
+        <select id="search_status" class="easyui-combobox" data-options="label:'状态：',labelWidth:50,panelHeight:'auto'" style="width:190px;height:25px;">
+            <option value="-1">--请选择状态--</option>
+            <option value="0">启用</option>
+            <option value="1">禁用</option>
+        </select> &nbsp;
+        <a href="#" id="search" class="easyui-linkbutton" data-options="height:25,iconCls:'icon-search'">搜索</a>
+    </div>
+    <!-- 工具栏 end -->
+
+    <!-- 添加对话框 start -->
+    <div id="dd_add" style="text-align: center;padding-top: 20px;">
+        <form id="ff_add">
+            <div style="margin-bottom:30px">
+                <input class="easyui-textbox" data-options="label:'姓名:',required:true" style="width: 60%;height: 30px;" id="name_add">
+            </div>
+            <div style="margin-bottom:30px">
+                <input class="easyui-textbox" data-options="label:'电话:',required:true" style="width: 60%;height: 30px;" id="phone_add">
+            </div>
+            <div style="margin-bottom:30px">
+                <input class="easyui-textbox" data-options="label:'地址:',required:true" style="width: 60%;height: 30px;" id="address_add">
+            </div>
+        </form>
+    </div>
+    <!-- 添加对话框 end -->
+
+    <!-- 修改对话框 start -->
+    <div id="dd_modify" style="text-align: center;padding-top: 20px;">
+        <form id="ff_modify">
+            <input id="id_modify" type="hidden">
+            <div style="margin-bottom:30px">
+                <input class="easyui-textbox" data-options="label:'姓名:',required:true" style="width: 60%;height: 30px;" id="name_modify">
+            </div>
+            <div style="margin-bottom:30px">
+                <input class="easyui-textbox" data-options="label:'电话:',required:true" style="width: 60%;height: 30px;" id="phone_modify">
+            </div>
+            <div style="margin-bottom:30px">
+                <input class="easyui-textbox" data-options="label:'地址:',required:true" style="width: 60%;height: 30px;" id="address_modify">
+            </div>
+        </form>
+    </div>
+    <!-- 修改对话框 end -->
+
+    <!-- 数据展示 start -->
+    <table id="dg"></table>
+    <!-- 数据展示 end -->
+</body>
+</html>

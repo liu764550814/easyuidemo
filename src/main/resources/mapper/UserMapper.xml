@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nuaa.demo.dao.UserDao">
+    <insert id="adduser" parameterType="TUserEntity">
+        INSERT INTO t_user(name,phone,address,status)
+        VALUES (#{name},#{phone},#{address},#{status})
+    </insert>
+    <select id="selectuserByname" parameterType="TUserEntity" resultType="Integer">
+        SELECT COUNT(*) FROM t_user WHERE name = #{name}
+    </select>
+    <select id="selectUser" resultType="TUserEntity">
+        SELECT * FROM t_user
+    </select>
+    <update id="updateUser" keyProperty="TUserEntity">
+        UPDATE
+          `t_user`
+        SET
+        `name` = #{name},
+        `phone` = #{phone},
+        `address` = #{address}
+        WHERE `id` = #{id};
+    </update>
+    <delete id="delUser" parameterType="int">
+        DELETE
+        FROM
+          `t_user`
+        WHERE `id` = #{id};
+    </delete>
+    <update id="updatestatus" parameterType="TUserEntity">
+        UPDATE
+          `t_user`
+        SET
+          `status` = #{status}
+        WHERE `id` = #{id};
+    </update>
+    <select id="search" parameterType="TUserEntity" resultType="TUserEntity">
+        SELECT * FROM t_user
+        <where>
+            <if test="name != ''">
+                AND `name` LIKE CONCAT('%',#{name},'%')
+            </if>
+            <if test="phone != ''">
+                AND `phone` LIKE CONCAT('%',#{phone},'%')
+            </if>
+            <if test="status != -1">
+                AND `status`= #{status}
+            </if>
+            <if test="address != ''">
+                AND `address` LIKE CONCAT('%',#{address},'%')
+            </if>
+        </where>
+
+        <!---->
+        <!--WHERE-->
+        <!--1=1-->
+        <!--<if test="name != ''">-->
+          <!--AND `name`= #{name}-->
+        <!--</if>-->
+        <!--<if test="phone != ''">-->
+           <!--AND `phone`= #{phone}-->
+        <!--</if>-->
+        <!--<if test="status != -1">-->
+           <!--AND `status`= #{status}-->
+        <!--</if>-->
+        <!--<if test="address != ''">-->
+            <!--AND `address`= #{address}-->
+        <!--</if>-->
+
+    </select>
+</mapper>
